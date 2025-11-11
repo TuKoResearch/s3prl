@@ -20,7 +20,11 @@ from s3prl.upstream.lighthubert.hubconf import *
 from s3prl.upstream.log_stft.hubconf import *
 from s3prl.upstream.mae_ast.hubconf import *
 from s3prl.upstream.mockingjay.hubconf import *
-from s3prl.upstream.mos_prediction.hubconf import *
+#from s3prl.upstream.mos_prediction.hubconf import *
+try:
+    from s3prl.upstream.mos_prediction.hubconf import *
+except Exception as e:
+    print(f"MOS predictor disabled: {e}")
 from s3prl.upstream.multires_hubert.hubconf import *
 from s3prl.upstream.npc.hubconf import *
 from s3prl.upstream.pase.hubconf import *
@@ -35,6 +39,10 @@ from s3prl.upstream.vq_wav2vec.hubconf import *
 from s3prl.upstream.wav2vec2.hubconf import *
 from s3prl.upstream.wav2vec.hubconf import *
 from s3prl.upstream.wavlm.hubconf import *
+
+# OURS
+from s3prl.upstream.AuriStream100M_40Pred_BigAudioDataset_500k.hubconf import *
+
 
 
 def options(only_registered_ckpt: bool = False):

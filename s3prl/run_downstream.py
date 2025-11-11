@@ -154,7 +154,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     torch.multiprocessing.set_sharing_strategy('file_system')
-    torchaudio.set_audio_backend('sox_io')
+    # torchaudio.set_audio_backend('sox_io')
+    getattr(torchaudio, "set_audio_backend", lambda *_args, **_kwargs: None)("sox_io")
     hack_isinstance()
 
     # get config and arguments

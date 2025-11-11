@@ -17,7 +17,8 @@ import numpy as np
 import torch
 import torchaudio
 
-torchaudio.set_audio_backend("sox_io")
+#torchaudio.set_audio_backend("sox_io")
+getattr(torchaudio, "set_audio_backend", lambda *_args, **_kwargs: None)("sox_io")
 
 
 def get_timestamp():
