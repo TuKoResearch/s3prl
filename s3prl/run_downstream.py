@@ -29,7 +29,8 @@ def get_downstream_args():
     parser.add_argument('--local_rank', type=int,
                         help=f'The GPU id this process should use while distributed training. \
                                None when not launched by torch.distributed.launch')
-
+    parser.add_argument("--local-rank", dest="local_rank",  # map to the same attribute
+    	type=int, default=None, help="alias for --local_rank for torch.distributed.run/launch")	
     # use a ckpt as the experiment initialization
     # if set, all the args and config below this line will be overwrited by the ckpt
     # if a directory is specified, the latest ckpt will be used by default

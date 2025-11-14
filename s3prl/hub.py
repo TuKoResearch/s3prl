@@ -42,7 +42,7 @@ from s3prl.upstream.wavlm.hubconf import *
 
 # OURS
 from s3prl.upstream.AuriStream100M_40Pred_BigAudioDataset_500k.hubconf import *
-
+from s3prl.upstream.AuriStream7BDeep_40Pred_BigAudioDataset_500k.hubconf import *
 
 
 def options(only_registered_ckpt: bool = False):
