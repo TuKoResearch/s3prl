@@ -85,6 +85,15 @@ def get_downstream_args():
     parser.add_argument('--verbose', action='store_true', help='Print model infomation')
     parser.add_argument('--disable_cudnn', action='store_true', help='Disable CUDNN')
 
+    # wandb
+    parser.add_argument('--wandb', action='store_true')
+    parser.add_argument('--wandb_project', default=os.environ.get("WANDB_PROJECT", "s3prl-superb"))
+    parser.add_argument('--wandb_entity', default=os.environ.get("WANDB_ENTITY", None))
+    parser.add_argument('--wandb_name', default=None)
+    parser.add_argument('--wandb_mode', default=os.environ.get("WANDB_MODE", "online"),
+                        choices=["online", "offline", "disabled"])
+
+
     args = parser.parse_args()
     backup_files = []
 
@@ -181,6 +190,34 @@ def main():
             original_world = ckpt['WorldSize']
             assert now_world == original_world, f'{now_world} != {original_world}'
 
+    # Added by GT
+    wandb_run = None
+    if getattr(args, "wandb", False):
+        if is_leader_process():
+            import wandb
+    
+            # online/offline/disabled
+            os.environ["WANDB_MODE"] = args.wandb_mode
+    
+            # Put wandb files inside the expdir (nice & tidy on clusters)
+            os.environ.setdefault("WANDB_DIR", args.expdir)
+    
+            # IMPORTANT: patch TB BEFORE SummaryWriter() is created
+            # This will sync your existing tensorboardX logs in args.expdir to W&B.
+            wandb.tensorboard.patch(root_logdir=args.expdir, tensorboard_x=True)
+    
+            wandb_run = wandb.init(
+                project=args.wandb_project,
+                entity=args.wandb_entity,
+                name=args.wandb_name or os.path.basename(args.expdir),
+                dir=args.expdir,
+                config={"args": vars(args), "config": config},
+            )
+        else:
+            # Make sure non-leader ranks don't create their own wandb runs
+            os.environ["WANDB_MODE"] = "disabled"
+
+    
     if args.hub == "huggingface":
         args.from_hf_hub = True
         # Setup auth
@@ -214,7 +251,11 @@ def main():
         torch.backends.cudnn.benchmark = False
 
     runner = Runner(args, config)
-    eval(f'runner.{args.mode}')()
+    try:
+        eval(f'runner.{args.mode}')()
+    finally:
+        if wandb_run is not None:
+            wandb_run.finish()
 
 
 if __name__ == '__main__':
