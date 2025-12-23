@@ -195,27 +195,24 @@ def main():
     if getattr(args, "wandb", False):
         if is_leader_process():
             import wandb
-    
-            # online/offline/disabled
             os.environ["WANDB_MODE"] = args.wandb_mode
-    
-            # Put wandb files inside the expdir (nice & tidy on clusters)
             os.environ.setdefault("WANDB_DIR", args.expdir)
     
-            # IMPORTANT: patch TB BEFORE SummaryWriter() is created
-            # This will sync your existing tensorboardX logs in args.expdir to W&B.
-            wandb.tensorboard.patch(root_logdir=args.expdir, tensorboard_x=True)
+            entity = args.wandb_entity
+            if entity is not None and str(entity).strip().lower() in {"", "none", "null"}:
+                entity = None
     
             wandb_run = wandb.init(
                 project=args.wandb_project,
-                entity=args.wandb_entity,
+                entity=entity,
                 name=args.wandb_name or os.path.basename(args.expdir),
                 dir=args.expdir,
                 config={"args": vars(args), "config": config},
+                sync_tensorboard=True,   # <-- key
             )
         else:
-            # Make sure non-leader ranks don't create their own wandb runs
             os.environ["WANDB_MODE"] = "disabled"
+
 
     
     if args.hub == "huggingface":
